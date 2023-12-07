@@ -388,7 +388,7 @@ app.post('/login', 아이디비번체크, async (요청, 응답, next) => {
     })(요청, 응답, next)
 })
 
-// mypage
+// mypage !
 app.get('/mypage', async (요청, 응답) => {
     //console.log(요청.user);
     응답.render('mypage.ejs', { user: 요청.user })
@@ -499,8 +499,3 @@ app.get('*', function (요청, 응답) {
     응답.sendFile(path.join(__dirname, '/react-project/build/index.html'));
 })
 
-
-// 실시간 채팅구현
-app.get('/chatDetail.ejs', function (요청, 응답) {
-
-})
