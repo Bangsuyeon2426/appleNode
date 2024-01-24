@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ejs파일(list)</title>
+    <link rel="stylesheet" href="/main.css">
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous"> -->
+</head>
+<!-- ejs파일 안에서는 자바스크립트 문법 어디서나 사용가능!!! -->
+<!-- html 안에 js문법 쓰려면 <% %> 안에 쓴다 -->
+
+<body class="grey-bg">
+    <!-- include() 쓰면 다른 ejs 파일에 있던 html 복사해올 수 있음 -->
+    <!-- 변수도 넣기 가능 -->
+    <%- include('nav.ejs') %>
+
+        <input class="search">
+        <button class="search-send">검색</button>
+        <script>
+            document.querySelector('.search-send').addEventListener('click', function () {
+                let 입력한거 = document.querySelector('.search').value;
+                //query string로 전송
+                location.href = '/search?val=' + 입력한거;
+            })
+        </script>
+
+        <div class="white-bg">
+            <%for(let i=0;i<글목록.length;i++){%>
+                <div class="list-box">
+                    <h4>
+                        <a href="/detail/<%=글목록[i]._id%>">
+                            <%=글목록[i].title%>
+                        </a>
+                        <!-- 수정 및 삭제 버튼 감싸는 부분 -->
+                        <% if (user && user._id && 글목록[i].user && user._id.toString()===글목록[i].user.toString()) { %>
+                            <a href="/edit/<%= 글목록[i]._id %>">✏️</a>
+                            <!-- 데이터 숨겨놓는 법=>쉽게 꺼내쓰기 가능 -->
+                            <span class="delete" data-id="<%=글목록[i]._id%>">🗑️</span>
+                            <% } %>
+                    </h4>
+                    <p>
+                        <%=글목록[i].content%>
+                    </p>
+                </div>
+                <%}%>
+        </div>
+
+        <%- include('pagination.ejs') %>
+
+            <!-- <nav aria-label="Page navigation example">
+        <ul class="pagination">
+            <% let totalPages=0; %>
+                <% let currentPage=0; %>
+                    <% if (typeof totalPages !=='undefined' ) { %>
+                        <% for (let i=1; i <=totalPages; i++) { %>
+                            <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                                <a class="page-link" href="/list/<%= i %>">
+                                    <%= i %>
+                                </a>
+                            </li>
+                            <% } %>
+                                <% } %>
+        </ul>
+    </nav> -->
+
+
+            <!-- <nav aria-label="Page navigation example">
+        <ul class="pagination">
+            <li class="page-item">
+                <a class="page-link" href="#" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item">
+                <a class="page-link" href="#" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav> -->
+
+            <!-- <a href="/list/next/<%=글목록[글목록.length-1]._id%>">다음</a> -->
+
+
+
+
+            <!-- axios -->
+            <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+            <script>
+                //* AJAX로 삭제기능 만들기 =>새로고침없이 GET 요청해줌
+                //1.삭제버튼 누르면 ajax써서 서버로 요청
+                // document.querySelectorAll('.delete')[0]
+                //     .addEventListener('click', function () {
+                //         //서버에 삭제 요청 날리기
+                //         fetch('/abc', {
+                //             method: 'POST',
+                //             headers: {
+                //                 'Content-Type': 'application/json'
+                //             },
+                //             // array, object 를 그냥 넣으면 깨지기 때문에 JSON.stringify() 를 써서 문자형태로 (JSON형태로) 바꿔서 전송
+                //             body: JSON.stringify({ a: 1 })
+                //         })
+                //     })
+
+                //서버로 내이름 전송      
+                // document.querySelectorAll('.delete')[1]
+                //     .addEventListener('click', function () {
+                //         //URL parameter 방법
+                //         //fetch('/abc/방수연')
+
+                //         //query strung 방법 :fetch('/abc?데이터이름=데이터값&데이터이름2=데이터값2') 
+                //         fetch('/abc?age=20') 
+                //     })
+
+                // axios.get('/URL').then((r) => {
+                //     console.log(r)
+
+                // }).catch(() => {
+                //     //에러시 실행할 코드
+                // })
+
+                //첫 글의 삭제버튼 기능(버튼 누르면 서버로 요청)
+                // console.log('<%=글목록[0]._id%>');
+                for (let i = 0; i < '<%=글목록.length%>'; i++) {
+                    document.querySelectorAll('.delete')[i]
+                        .addEventListener('click', function (e) {
+                            // fetch('/delete?docid=' + '<%=글목록[0]._id%>', {
+                            fetch('/delete?docid=' + e.target.dataset.id, {
+                                method: 'DELETE'
+                            })
+                                //ajax사용시 서버가 보낸 데이터도 출력가능
+                                .then((r) => r.text())//array.obj =>.json()
+                                .then((r) => {
+                                    e.target.parentElement.parentElement.style.display = 'none'
+                                })
+                        })
+                }
+
+                //ajax 실패하는 경우 (예외처리 커버)
+                // fetch('/URL')
+                //     .then((r) => {
+                //         if (r.status == 400) {
+                //             return r.json()
+                //         } else {
+                //             //서버가 에러코드전송시 실행할코드
+                //             alert('에러남')
+                //         }
+                //     })
+                //     .then((result) => {
+                //         //성공시 실행할코드
+                //     }).catch((error) => {
+                //         //인터넷문제 등으로 실패시 실행할코드
+                //         console.log(error)
+                //     })
+                //==>코드가 매우 긴 편이라 불편한데 그래서 AJAX 많이 쓰면 외부 라이브러리 설치해서 쓸 수 있음 (axios)
+
+                //구글: 'axios cdn' 검색
+                //찾아온 거 상단에 추가
+            </script>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+                integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+                crossorigin="anonymous"></script>
+</body>
+
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ejs파일(write)</title>
+    <link rel="stylesheet" href="/main.css">
+    <link rel="stylesheet" href="/list.css">
+</head>
+
+<body class="grey-bg">
+    <%- include('nav.ejs',{age:20})%>
+        <!-- 3.전송누르면 서버로 전송, 서버는 확인 후 DB 수정 -->
+        <!-- REST API=> 수정기능은 PUT method ,삭제기능은 DELETE method -->
+        <!-- URL 가장 뒤에 ?_method=PUT 이런 식의 코드를 작성하면 현재 폼전송시 POST요청이 아니라 PUT 요청으로 덮어쓰기 -->
+        <form class="form-box" action="/edit?_method=PUT" method="POST">
+            <h4>글수정</h4>
+            <!-- 유저야 무슨 docu 수정할지 보내라 -->
+            <!-- // 서버에 없는 정보는 유저에게 보내라고 하거나
+            // DB에서 뽑아보거나 둘 중 하나 하면 보통 해결됩니다.  
+            // "어떤 document를 수정하고 싶은지"는 서버는 모르고 유저만 알고있기 때문에 유저에게 보내라고 하면 됩니다. 
+            // 유저에게 수정할 글의 _id를 보내라고 합시다. -->
+            <input name="id" value="<%= result._id %>" style="display: none;">
+            <!-- 2. 수정페이지엔 글의 제목과 내용이 이미 채워져있어야함 -->
+            <input name="title" value="<%= result.title %>">
+            <input type="file" name="img1" accept="image/*" value="<%= result.img %>" multiple>
+            <input name="content" value="<%= result.content %>">
+            <!-- 3. 전송누르면 그걸로 기존에 있던 document를 수정해줌  -->
+            <button type="submit">전송</button>
+        </form>
+</body>
+
+</html>

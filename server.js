@@ -37,7 +37,8 @@ let db;
 connectDB.then((client) => {
     console.log('DB연결성공')
     db = client.db('forum');
-    app.listen(process.env.PORT, () => {
+    //socket.io (app.listen->server.listen=>httpServer)
+    server.listen(process.env.PORT, () => {
         console.log('http://localhost:8080 에서 서버 실행중');
     })
 }).catch((err) => {
@@ -51,7 +52,6 @@ const LocalStrategy = require('passport-local')
 //세션을 DB에 저장하려면 connect-mongo: npm install connect-mongo 
 const MongoStore = require('connect-mongo')
 
-app.use(passport.initialize())
 app.use(session({
     secret: '암호화에 쓸 비번',
     resave: false,
@@ -64,7 +64,7 @@ app.use(session({
         dbName: 'forum'
     })
 }))
-
+app.use(passport.initialize())
 app.use(passport.session())
 
 //이미지업로드 라이브러리 셋팅
@@ -93,6 +93,34 @@ const upload = multer({
 //HASGING
 //npm install bcrypt
 const bcrypt = require('bcrypt')
+
+//socket.ioc 
+const { createServer } = require('http')
+const { join } = require("node:path");
+const { Server } = require('socket.io');
+const server = createServer(app)
+
+const io = new Server(server)
+const sessionMiddleware = session({
+    secret: 'your-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        maxAge: 60 * 60 * 1000, // 세션의 유효 기간 (1시간)
+        httpOnly: true, // 클라이언트 스크립트에서 쿠키에 접근하지 못하도록 함
+        secure: false, // HTTPS를 통해서만 쿠키를 전송하도록 설정 (HTTPS를 사용할 경우 true로 변경)
+        sameSite: 'strict' // CSRF 공격 방지를 위해 SameSite 설정
+    },
+    store: MongoStore.create({
+        mongoUrl: process.env.DB_URL, // MongoDB 연결 문자열
+        dbName: 'forum'
+    })
+});//
+app.use(sessionMiddleware);//
+io.use((socket, next) => {
+    sessionMiddleware(socket.request, socket.request.res, next)
+})//
+io.engine.use(sessionMiddleware);//
 
 //서버 띄우는 코드
 //네 컴퓨터 PORT 하나 오픈하는 문법(다른 사람 들어오도록 컴퓨터에 구멍 뚫어 놓기)
@@ -167,7 +195,7 @@ app.get('/detail/:id', async (req, res) => {
     try {
         //댓글 작성 페이지
         //parentId 필드가 req.params.id와 일치하는 댓글을 데이터베이스에서 찾아 반환
-        let result2 = await db.collection('comment').
+        let result2 = await db.collection(' t').
             find({ parentId: new ObjectId(req.params.id) }).toArray()
 
         //req.params //:id를 가리킴 (유저가 url파라미터 자리에 입력한 데이터)
@@ -388,7 +416,7 @@ app.post('/login', 아이디비번체크, async (요청, 응답, next) => {
     })(요청, 응답, next)
 })
 
-// mypage !
+// mypage !!
 app.get('/mypage', async (요청, 응답) => {
     //console.log(요청.user);
     응답.render('mypage.ejs', { user: 요청.user })
@@ -480,12 +508,12 @@ app.get('/search', async (요청, 응답) => {
 
 //**Node+Express 서버와 React 연동하려면
 const path = require('path')
-app.use(express.static(path.join(__dirname, 'react-project/build')));
+app.use('/react', express.static(path.join(__dirname, 'react-project/build')));
 //리액트와 nodejs 서버간 ajax 요청  // npm install cors
 app.use(express.json());
 var cors = require('cors');
 app.use(cors());
-app.get('/react', function (요청, 응답) {
+app.get('*', function (요청, 응답) {
     //react-project 안에 build안에 index.html
     응답.sendFile(path.join(__dirname, 'react-project/build/index.html'));
 })
@@ -499,3 +527,67 @@ app.get('*', function (요청, 응답) {
     응답.sendFile(path.join(__dirname, '/react-project/build/index.html'));
 })
 
+//socket.io 설치 => npm install socket.io@4
+// 상단에 const { createServer } = require('http')
+// const { Server } = require('socket.io')
+// const server = createServer(app)
+// const io = new Server(server) 추가
+// 웹소켓 사용을 원하는 html 파일에도 이런걸 넣어서 socket.io 라이브러리를 설치(chatDetail.js)
+
+//유저가 웹소켓 연결시 서버에서 코드 실행하려면
+io.on('connection', (socket) => {
+    console.log('socket session:', socket.request.session);
+    const session = socket.request.session;
+    console.log('socket session ID:', session);
+
+
+    if (session && session.passport && session.passport.user) {
+        const user = session.passport.user;  // user 변수를 정의해야 함
+        const userID = user ? user.id : null;
+        console.log('Connected user ID:', userID);
+    } else {
+        console.log('No connected user');
+    }
+    // the session ID is used as a room
+    //socket.join(sessionId);
+
+    //console.log('websocket 연결됨')
+
+    //<유저->서버> : 데이터 수신하려면 socket.on()
+    // socket.on('데이터이름', (data) => {
+    //     console.log('유저가 보낸거 : ', data);
+    //     io.emit('name', 'kim')
+    // })
+    //<서버->'모든유저'> 데이터 전송
+    //io.emit('데이터이름','데이터')
+    //socket.io 라이브러리 room (웹소켓방)
+    //유저가 서버에게 부탁해야 룸에 조인가능
+    socket.on('ask-join', (data) => {
+        socket.join(data)
+    })
+
+    //Q. 유저가 특정 룸에만 메세지를 보내고 싶으면
+    //1.서버에게 룸에 메시지 전달하라고 부탁
+    //2.서버는 부탁받으면 룸에 전달
+    socket.on('message-send', async (data) => {
+        try {
+            // const userId = socket.request.session.passport.user ? socket.request.session.passport.user.id : null;
+            // console.log('User ID:', userId);
+            //db영구저장
+            //채팅내용,날짜,부모document id,작성자
+            // data.date = new Date();
+            await db.collection('chatMessage').insertOne({
+                parentRoom: new ObjectId(data.room),
+                content: data.msg,
+                who: new ObjectId(socket.request.session.passport.user.id)
+                //date: data.date
+            })
+            console.log('유저가 보낸 메시지 : ', data);
+            //3.서버는 그것을 room에 전송
+            io.to(data.room).emit('message-broadcast', data.msg)
+            //console.log(data);
+        } catch (error) {
+            console.error('메시지 전송 오류 : ', error);
+        }
+    })
+}) 

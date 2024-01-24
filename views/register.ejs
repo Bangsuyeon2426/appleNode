@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>register</title>
+    <link rel="stylesheet" href="/main.css">
+</head>
+
+<body class="grey-bg">
+    <%- include('nav.ejs')%>
+
+        <form class="form-box" action="/register" method="POST" onsubmit="return validateForm()">
+            <h4>가입하기</h4>
+            <input name="username">
+            <input id="password" name="password" type="password">
+            <input id="password2" name="password2" type="password">
+            <span id="passwordError" style="color: red;"></span>
+            <button type="submit">전송</button>
+        </form>
+        <script>
+            function validateForm() {
+                var password = document.getElementById('password').value;
+                var password2 = document.getElementById('password2').value;
+
+                if (password !== password2) {
+                    document.getElementById('passwordError').innerText = "비밀번호가 일치하지 않습니다.";
+                    return false;
+                } else {
+                    document.getElementById('passwordError').innerText = "";
+                    return true;
+                }
+            }
+        </script>
+</body>
+
+</html>

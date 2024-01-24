@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ejs파일(write)</title>
+    <link rel="stylesheet" href="/main.css">
+    <link rel="stylesheet" href="/list.css">
+</head>
+
+<body class="grey-bg">
+    <%- include('nav.ejs',{age:20})%>
+        <div class="white-bg">
+            <% for (let i=0; i < 채팅목록.length; i++){ %>
+                <div class="list-box">
+                    <h4>
+                        <!-- 현재 채팅방의 아이디 -->
+                        <a href="/chat/detail/<%= 채팅목록[i]._id %>">채팅방제목</a>
+                    </h4>
+                    <p>채팅방설명~~</p>
+                </div>
+                <% } %>
+        </div>
+</body>
+
+</html>

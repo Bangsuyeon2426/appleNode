@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ejs파일(write)</title>
+    <link rel="stylesheet" href="/main.css">
+    <link rel="stylesheet" href="/list.css">
+</head>
+
+<body class="grey-bg">
+    <%- include('nav.ejs',{age:20})%>
+        <!-- 깨지지 않게 보려면 아래와 같이 -->
+        <!-- <%=JSON.stringify(result)%> -->
+        <div class="detail-bg">
+            <h4>
+                <%= result.title %>
+            </h4>
+            <% if (result.img) { %>
+                <div>
+                    <img src="<%= result.img %>" alt="글 이미지">
+                </div>
+                <% } %>
+                    <p>
+                        <%= result.content %>
+                    </p>
+                    <a href="/chat/request?writerId=<%=result.user%>">채팅하기</a>
+                    <hr style="margin-top: 60px">
+                    <div>
+                        <% for (let i=0; i < result2.length; i++) { %>
+                            <p>
+                                <strong>
+                                    <%= result2[i].writer %>
+                                </strong>
+                                <%= result2[i].content %>
+                            </p>
+                            <% } %>
+                    </div>
+                    <form action="/board/sub/comment" method="POST">
+                        <input name="content">
+                        <!-- 부모 게시글의 아이디도 함께 저장 -->
+                        <input name="parentId" value="<%= result._id %>" style="display: none">
+                        <button type="submit">댓글작성</button>
+                    </form>
+
+        </div>
+        <!-- AJAX를 사용하여 새로고침 없이 댓글을 저장하고, 저장이 완료되면 새로운 댓글 내용을 HTML에 동적으로 추가하는 방법 -->
+        <!-- <script>
+            function submitComment() {
+        const content = document.querySelector('input[name="content"]').value;
+        const parentId = document.querySelector('input[name="parentId"]').value;
+
+        axios.post('/board/sub/comment', { content, parentId })
+            .then(response => {
+                // 댓글 저장 성공시 실행되는 코드
+                const commentSection = document.getElementById('commentSection');
+                const newComment = `<p><strong>${response.data.writer}</strong>${response.data.content}</p>`;
+                commentSection.innerHTML += newComment;
+
+                // 댓글 작성 폼 초기화
+                document.querySelector('input[name="content"]').value = '';
+            })
+            .catch(error => {
+                console.error('댓글 저장 실패:', error);
+            });
+    }
+        </script> -->
+</body>
+
+</html>

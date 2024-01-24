@@ -1,0 +1,29 @@
+<!-- 유저가 DB와 직접 통신하게 냅두면 유저가 DB에 이상한 짓을 할 수도 있기 때문에
+DB조작이 필요한 경우는 중간에 서버를 거치는 식으로 코드짜는게 좋습니다 
+1. 유저가 글작성페이지에서 글을 작성해서 서버로 글을 보내고 
+2. 서버는 글을 받으면 잘썼나 확인해보고 
+3. 서버는 그걸 DB에 저장 -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ejs파일(write)</title>
+    <link rel="stylesheet" href="/main.css">
+</head>
+
+<body class="grey-bg">
+    <%- include('nav.ejs',{age:20})%>
+        <!-- 1.버튼누르면 서버로 글 전송하기 -->
+        <!-- 들어가야할 것 : action(url),method,input name="" -->
+        <form class="form-box" action="/board/sub/add" method="POST" enctype="multipart/form-data">
+            <h4>글쓰기</h4>
+            <input name="title">
+            <input name="content">
+            <input type="file" name="img1" accept="image/*" multiple>
+            <button type="submit">전송</button>
+        </form>
+</body>
+
+</html>

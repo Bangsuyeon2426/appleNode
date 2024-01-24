@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ejs파일(write)</title>
+    <link rel="stylesheet" href="/main.css">
+    <link rel="stylesheet" href="/list.css">
+</head>
+
+<body class="grey-bg">
+    <%- include('nav.ejs',{age:20})%>
+        <%= JSON.stringify(채팅방상세페이지)%>
+            <div class="detail-bg">
+                <div class="detail-bg">
+                    <div class="chat-screen">
+                        <!-- <div class="chat-box"><span>안녕하세요</span></div>
+                        <div class="chat-box"><span>안녕하세요</span></div>
+                        <div class="chat-box mine"><span>안녕하세요</span></div> -->
+                    </div>
+                </div>
+                <div class="chat-form">
+                    <input class="chat-input">
+                    <button class="chat-button">전송</button>
+                </div>
+            </div>
+
+            <!-- 웹소켓 사용을 원하는 html 파일에도 이런걸 넣어서 socket.io 라이브러리를 설 치 -->
+            <script src="https://cdn.jsdelivr.net/npm/socket.io@4.7.2/client-dist/socket.io.min.js"></script>
+            <script>
+                //유저의 웹소켓 연결 끝
+                const socket = io()
+
+                //<유저->서버> : 유저가 서버로 어떠한 데이터를 웹소켓으로 전송하고 싶으면
+                // socket.emit('ask-join', '1')
+
+                // //Q. 유저가 특정 룸에만 메세지를 보내고 싶으면
+                // //1.버튼누르면 서버에 부탁
+                // document.querySelector('.chat-button').addEventListener('click', function () {
+                //     socket.emit('message', { msg: '반가워', room: '1' })
+                // })
+                // //3.유저는 룸 메시지 수신하려면
+                // //<서버->유저> : 데이터 수신하려면 socket.on()
+                // socket.on('broadcast', (data) => {
+                //     console.log(data); //f12 콘솔에서 확인
+                // })
+
+                //1. 일단 상세페이지 들어가면 room에 넣어줌
+                //서버에 채팅방의 document_id 보내기
+                socket.emit('ask-join', '<%=채팅방상세페이지._id%>')
+                // 2. 글적고 전송버튼 누르면 room에 전송해달라고 서버로 부탁
+                document.querySelector('.chat-button').addEventListener('click', function () {
+                    let 작성메시지 = document.querySelector('.chat-input').value;
+                    socket.emit('message-send',
+                        { room: '<%=채팅방상세페이지._id%>', msg: 작성메시지 })
+                })
+
+                //4.유저는 서버가 전송한걸 받으면 그걸 html로 만들어서 보여줌
+                socket.on('message-broadcast', (data) => {
+                    console.log(data);
+                    document.querySelector('.chat-screen')
+                        .insertAdjacentHTML('beforeend',
+                            `<div class="chat-box"><span>${data}</span></div>`)
+                })
+            </script>
+</body>
+
+</html>
